@@ -40,7 +40,7 @@ SafeTruncateUInt64(uint64 Value)
 
 // Below: Services that the platform layer provides to the game.
 
-#if HANDMADE_INTERNAL
+//#if HANDMADE_INTERNAL
 struct debug_read_file_result
 {
     uint32 ContentsSize;
@@ -50,7 +50,7 @@ internal debug_read_file_result DEBUGPlatformReadEntireFile(char *Filename);
 internal void DEBUGPlatformFreeFileMemory(void *Memory);
 internal bool32 DEBUGPlatformWriteEntireFile(char *Filename, uint32 MemorySize, void* Memory);
 
-#endif
+//#endif
 
 ///////////////////////////////////////////
 
@@ -125,7 +125,7 @@ struct game_input
     game_controller_input Controllers[5];
 };
 
-inline game_controller_input *GetController(game_input *Input, int ControllerIndex)
+inline game_controller_input *GetController(game_input *Input, int unsigned ControllerIndex)
 {
     Assert(ControllerIndex < ArrayCount(Input->Controllers));
     game_controller_input *Result = &Input->Controllers[ControllerIndex];

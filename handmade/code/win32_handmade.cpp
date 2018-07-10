@@ -59,6 +59,8 @@ global_variable bool32 GlobalRunning;
 global_variable win32_offscreen_buffer GlobalBackBuffer;
 global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryBuffer;
 
+unsigned __int64 __rdtsc();
+
 // NOTE: XInputGetState
 #define X_INPUT_GET_STATE(name) DWORD WINAPI name(DWORD dwUserIndex, XINPUT_STATE* pState)
 typedef X_INPUT_GET_STATE(x_input_get_state);
@@ -478,11 +480,11 @@ Win32ProcessXInputStickValue(SHORT Value, SHORT DeadZoneThreshold)
     real32 Result = 0;
     if(Value < -DeadZoneThreshold)
     {
-        Result = (real32)Value / 32768.0f;
+        Result = (real32)((Value + DeadZoneThreshold) / (32768.0f - DeadZoneThreshold));
     }
     else if(Value > DeadZoneThreshold)
     {
-        Result = (real32)Value / 32767.0f;
+        Result = (real32)((Value + DeadZoneThreshold) / (32767.0f - DeadZoneThreshold));
     }
     
     return(Result);
@@ -716,26 +718,33 @@ WinMain(HINSTANCE Instance,
                             // TODO: See if dwPacketNumber increases too rapidly.
                             XINPUT_GAMEPAD *Pad = &ControllerState.Gamepad;
                             
-                            NewController->IsAnalog = true;
-                            
                             NewController->StickAverageX = Win32ProcessXInputStickValue(Pad->sThumbLX, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
                             NewController->StickAverageY = Win32ProcessXInputStickValue(Pad->sThumbLY, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+                            
+                            if((NewController->StickAverageX != 0.0f) || (NewController->StickAverageY != 0.0f))
+                            {
+                                NewController->IsAnalog = true;
+                            }
                             
                             if(Pad->wButtons & XINPUT_GAMEPAD_DPAD_UP)
                             {
                                 NewController->StickAverageY = 1.0f;
+                                NewController->IsAnalog = false;
                             }
                             if(Pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN)
                             {
                                 NewController->StickAverageY = -1.0f;
+                                NewController->IsAnalog = false;
                             }
                             if(Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT)
                             {
                                 NewController->StickAverageX = 1.0f;
+                                NewController->IsAnalog = false;
                             }
                             if(Pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)
                             {
                                 NewController->StickAverageX = -1.0f;
+                                NewController->IsAnalog = false;
                             }
                             
                             real32 Threshold = 0.5f;
